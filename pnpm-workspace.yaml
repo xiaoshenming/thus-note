@@ -1,0 +1,4 @@
+packages:
+  - "thus-backends/*"
+  - "thus-frontends/*"
+  - "thus-docs"

@@ -26,10 +26,30 @@
     "pwa",
     "cross-platform"
   ],
+  "scripts": {
+    "dev:server": "nx dev thus-server",
+    "dev:web": "nx dev thus-web",
+    "dev:docs": "nx docs:dev thus-docs",
+    "build": "nx run-many -t build",
+    "build:server": "nx build thus-server",
+    "build:web": "nx build thus-web",
+    "build:docs": "nx docs:build thus-docs",
+    "lint": "nx run-many -t lint",
+    "test": "nx run-many -t test",
+    "graph": "nx graph"
+  },
   "devDependencies": {
-    "lerna": "^8.2.1"
+    "@nx/js": "^22.5.4",
+    "nx": "^22.5.4"
   },
   "dependencies": {
     "axios": "^1.13.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "nx",
+      "@playwright/browser-chromium",
+      "esbuild"
+    ]
   }
 }

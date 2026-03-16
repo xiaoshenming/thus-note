@@ -111,3 +111,6 @@ deploy/update-server.sh
 
 # Ruff cache
 .ruff_cache/
+
+# Nx cache
+.nx/
