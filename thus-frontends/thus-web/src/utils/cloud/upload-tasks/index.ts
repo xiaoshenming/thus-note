@@ -15,8 +15,8 @@ import valTool from "~/utils/basic/val-tool"
 async function handle10Tasks(tasks: UploadTaskLocalTable[]) {
 
   // 1. uploading related files
-  const res1 = await handleFiles(tasks)
-  if(!res1) return false
+  // 即使文件上传失败，也不阻止消息同步
+  await handleFiles(tasks)
 
   // 2. package tasks to prepare for syncing
   const res2 = await syncTasks(tasks)

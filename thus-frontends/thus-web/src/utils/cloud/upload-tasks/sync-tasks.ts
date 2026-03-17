@@ -22,12 +22,9 @@ import usefulTool from "~/utils/basic/useful-tool";
 export async function syncTasks(tasks: UploadTaskLocalTable[]) {
 
   // 0. define the filter function
-  const now = time.getTime()
   const _filterFunc = (task: UploadTaskLocalTable) => {
-    const t1 = task.failedStamp
-    if(t1 && (now - t1) < time.MINUTE) return false
     if(task.progressType !== "waiting") return false
-    return true      
+    return true
   }
 
   // 1. get tasks again
