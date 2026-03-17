@@ -512,7 +512,7 @@ export async function handleFiles(tasks: UploadTaskLocalTable[]) {
     prefix: "",
     bucket: "local",
     region: "local",
-    domain: "http://localhost:3000"
+    domain: "http://10.42.0.1:3000"
   } as any
 
   // 6. handle atoms

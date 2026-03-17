@@ -16,7 +16,7 @@ export async function uploadViaLocal(
 ): Promise<UploadFileRes> {
   let allHasCloudUrl = true
   const env = liuEnv.getEnv()
-  const domain = env.API_DOMAIN ?? "http://localhost:3000"
+  const domain = env.API_DOMAIN ?? "http://10.42.0.1:3000"
   // Ensure no trailing slash
   const baseUrl = domain.endsWith('/') ? domain.slice(0, -1) : domain
 

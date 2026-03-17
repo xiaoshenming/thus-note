@@ -100,7 +100,7 @@ router.post('/upload', authMiddleware, upload.array('files', 10), async (req: Re
         downloadUrl = storageResult.url;
       } else {
         // 本地存储使用 API 下载接口
-        downloadUrl = `http://localhost:${process.env.PORT || 3000}/api/files/${fileId}/download`;
+        downloadUrl = `http://10.42.0.1:${process.env.PORT || 3000}/api/files/${fileId}/download`;
       }
 
       const fileData = {

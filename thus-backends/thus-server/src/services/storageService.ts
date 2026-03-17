@@ -50,7 +50,7 @@ export class LocalStorageService implements IStorageService {
   private uploadDir: string;
   private baseUrl: string;
 
-  constructor(uploadDir: string = 'uploads', baseUrl: string = 'http://localhost:3000') {
+  constructor(uploadDir: string = 'uploads', baseUrl: string = 'http://10.42.0.1:3000') {
     this.uploadDir = uploadDir;
     this.baseUrl = baseUrl;
     
@@ -288,7 +288,7 @@ export class StorageServiceFactory {
   /**
    * 创建存储服务实例
    */
-  static create(config: IStorageConfig, baseUrl: string = 'http://localhost:3000'): IStorageService {
+  static create(config: IStorageConfig, baseUrl: string = 'http://10.42.0.1:3000'): IStorageService {
     switch (config.type) {
       case StorageType.S3:
         if (!config.s3) {
@@ -343,7 +343,7 @@ export class StorageServiceFactory {
   /**
    * 测试存储连接
    */
-  static async testConnection(config: IStorageConfig, baseUrl: string = 'http://localhost:3000'): Promise<{ success: boolean; message: string }> {
+  static async testConnection(config: IStorageConfig, baseUrl: string = 'http://10.42.0.1:3000'): Promise<{ success: boolean; message: string }> {
     try {
       const service = this.create(config, baseUrl);
       

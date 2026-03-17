@@ -375,7 +375,7 @@ const SystemConfigSchema = new Schema<ISystemConfig>(
   {
     baseUrl: {
       type: String,
-      default: 'http://localhost:3000',
+      default: 'http://10.42.0.1:3000',
     },
     frontendUrl: {
       type: String,
