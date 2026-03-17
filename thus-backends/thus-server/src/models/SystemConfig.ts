@@ -433,14 +433,19 @@ const SystemConfigSchema = new Schema<ISystemConfig>(
           defaultModel: { type: String, required: true },
           models: { type: [String], default: [] },
         }],
-        default: () => [{
-          enabled: true,
-          name: 'openai',
-          baseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
-          apiKey: process.env.OPENAI_API_KEY || '',
-          defaultModel: process.env.OPENAI_DEFAULT_MODEL || 'gpt-3.5-turbo',
-          models: [process.env.OPENAI_DEFAULT_MODEL || 'gpt-3.5-turbo'],
-        }],
+        default: () => {
+          // 只有在有有效 API key 时才创建默认 provider
+          const apiKey = process.env.OPENAI_API_KEY;
+          if (!apiKey) return [];
+          return [{
+            enabled: true,
+            name: 'openai',
+            baseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+            apiKey: apiKey,
+            defaultModel: process.env.OPENAI_DEFAULT_MODEL || 'gpt-3.5-turbo',
+            models: [process.env.OPENAI_DEFAULT_MODEL || 'gpt-3.5-turbo'],
+          }];
+        },
       },
     },
     updatedBy: {

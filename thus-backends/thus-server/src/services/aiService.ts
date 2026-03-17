@@ -54,6 +54,7 @@ export class AIService {
 
       for (const provider of providers) {
         if (!provider.enabled) continue;
+        if (!provider.apiKey) continue; // 跳过没有 apiKey 的 provider
 
         const name = provider.name.toLowerCase();
         if (name.includes('claude') || name.includes('anthropic')) {
@@ -291,8 +292,15 @@ export class AIService {
     } else if (model.startsWith('gemini')) {
       return this.callGemini(messages, model, temperature, maxTokens);
     } else {
-      // Fallback: route unknown models to OpenAI-compatible endpoint
-      return this.callOpenAI(messages, model, temperature, maxTokens);
+      // Fallback: route unknown models to the first available provider
+      if (this.anthropic) {
+        return this.callClaude(messages, model, temperature, maxTokens);
+      } else if (this.openai) {
+        return this.callOpenAI(messages, model, temperature, maxTokens);
+      } else if (this.gemini) {
+        return this.callGemini(messages, model, temperature, maxTokens);
+      }
+      throw new Error('没有可用的AI服务，请检查API配置');
     }
   }
 

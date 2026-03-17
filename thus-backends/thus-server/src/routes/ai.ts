@@ -624,7 +624,18 @@ async function callAIService(
   maxTokens: number
 ): Promise<AIResponse> {
   try {
-    const defaultModel = aiConfig.openai.defaultModel || aiConfig.anthropic.defaultModel || 'deepseek-ai/DeepSeek-V3';
+    // 优先使用有配置的那个 provider
+    const hasOpenAI = Boolean(aiConfig.openai.apiKey);
+    const hasAnthropic = Boolean(aiConfig.anthropic.apiKey);
+
+    let defaultModel: string;
+    if (hasAnthropic) {
+      defaultModel = aiConfig.anthropic.defaultModel;
+    } else if (hasOpenAI) {
+      defaultModel = aiConfig.openai.defaultModel;
+    } else {
+      defaultModel = 'deepseek-ai/DeepSeek-V3';
+    }
 
     const modelMapping: Record<AIModelType, string> = {
       [AIModelType.GPT_4]: defaultModel,
