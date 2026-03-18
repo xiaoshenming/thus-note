@@ -78,6 +78,9 @@ async function decryptLiuEncAtoms(liu_enc_atoms: { cipherText: string; iv: strin
 router.post('/', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
+    const protocol = req.protocol;
+    const host = req.get('host') || 'localhost:3000';
+    const reqHost = `${protocol}://${host}`;
     const { operateType, atoms, plz_enc_atoms, liu_enc_atoms } = req.body;
 
     console.log(`\n📥 收到 sync-set 请求:`, JSON.stringify({
@@ -143,6 +146,8 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
             result = await editComment(userId, atom);
           } else if (taskType === 'comment-delete') {
             result = await deleteComment(userId, atom);
+          } else if (taskType === 'thread-tag') {
+            result = await updateThreadTag(userId, atom);
           } else if (taskType === 'workspace-tag') {
             result = await updateWorkspaceTag(userId, atom);
           } else if (taskType === 'workspace-state_config') {
@@ -157,10 +162,10 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
           // sync-get 操作
           if (taskType === 'thread_list') {
             console.log(`📝 调用 getThreadList`);
-            result = await getThreadList(userId, atom);
+            result = await getThreadList(userId, atom, reqHost);
             console.log(`✅ getThreadList 返回:`, JSON.stringify(result, null, 2));
           } else if (taskType === 'content_list') {
-            result = await getContentList(userId, atom);
+            result = await getContentList(userId, atom, reqHost);
           } else if (taskType === 'thread_data') {
             result = await getThreadData(userId, atom);
           } else if (taskType === 'comment_list') {
@@ -279,6 +284,8 @@ router.post('/set', authMiddleware, async (req: Request, res: Response) => {
           result = await editComment(userId, atom);
         } else if (taskType === 'comment-delete') {
           result = await deleteComment(userId, atom);
+        } else if (taskType === 'thread-tag') {
+          result = await updateThreadTag(userId, atom);
         } else if (taskType === 'workspace-tag') {
           result = await updateWorkspaceTag(userId, atom);
         } else if (taskType === 'workspace-state_config') {
@@ -314,7 +321,7 @@ router.post('/set', authMiddleware, async (req: Request, res: Response) => {
 /**
  * 获取线程列表
  */
-async function getThreadList(userId: Types.ObjectId, atom: any) {
+async function getThreadList(userId: Types.ObjectId, atom: any, reqHost?: string) {
   const { taskId, viewType, spaceId, limit = 20, skip = 0, stateId, lastItemStamp } = atom;
 
   const query: any = { userId };
@@ -408,8 +415,23 @@ async function getThreadList(userId: Types.ObjectId, atom: any) {
         storageState: 'CLOUD',
         title: threadObj.title || '',
         thusDesc: threadObj.thusDesc || [],
-        images: threadObj.images || [],
-        files: threadObj.files || [],
+        images: (threadObj.images || []).map((img: any) => {
+          const fixed = { ...img };
+          if (fixed.url && typeof fixed.url === 'string' && reqHost) {
+            fixed.url = fixed.url.replace(/http:\/\/[^:/]+:\d+/, reqHost);
+          }
+          if (fixed.url_2 && typeof fixed.url_2 === 'string' && reqHost) {
+            fixed.url_2 = fixed.url_2.replace(/http:\/\/[^:/]+:\d+/, reqHost);
+          }
+          return fixed;
+        }),
+        files: (threadObj.files || []).map((f: any) => {
+          const fixed = { ...f };
+          if (fixed.url && typeof fixed.url === 'string' && reqHost) {
+            fixed.url = fixed.url.replace(/http:\/\/[^:/]+:\d+/, reqHost);
+          }
+          return fixed;
+        }),
         calendarStamp: threadObj.calendarStamp || 0,
         remindStamp: threadObj.remindStamp || 0,
         whenStamp: threadObj.whenStamp || 0,
@@ -454,10 +476,10 @@ async function getThreadList(userId: Types.ObjectId, atom: any) {
 /**
  * 获取内容列表
  */
-async function getContentList(userId: Types.ObjectId, atom: any) {
+async function getContentList(userId: Types.ObjectId, atom: any, reqHost?: string) {
   // content_list 语义等同于 thread_list（前端主列表加载入口）
   // laf 原版实现：按 spaceId 查 Thread，附加 myFavorite 等共享数据
-  return getThreadList(userId, atom);
+  return getThreadList(userId, atom, reqHost);
 }
 
 /**
@@ -917,6 +939,25 @@ async function updateWorkspaceTag(userId: Types.ObjectId, atom: any) {
     return { code: 'E4004', taskId, errMsg: '未找到空间' };
   }
   await Space.findByIdAndUpdate(member.spaceId, { $set: { tagList } });
+  return { code: '0000', taskId };
+}
+
+async function updateThreadTag(userId: Types.ObjectId, atom: any) {
+  const { taskId, thread } = atom;
+  if (!thread || (!thread.id && !thread.first_id)) {
+    return { code: 'E4000', taskId, errMsg: 'thread.id 或 first_id 是必需的' };
+  }
+  const query: any = { userId };
+  if (thread.id) query._id = thread.id;
+  else if (thread.first_id) query.first_id = thread.first_id;
+
+  const existingThread = await Thread.findOne(query);
+  if (!existingThread) {
+    return { code: 'E4004', taskId, errMsg: '线程不存在' };
+  }
+  if (thread.tagIds !== undefined) existingThread.tagIds = thread.tagIds;
+  if (thread.tagSearched !== undefined) existingThread.tagSearched = thread.tagSearched;
+  await existingThread.save();
   return { code: '0000', taskId };
 }
 
